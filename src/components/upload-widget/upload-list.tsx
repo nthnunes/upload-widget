@@ -1,6 +1,8 @@
 import { UploadItem } from "./upload-item";
 
 export function UploadList() {
+  const isUploadListEmpty = false;
+
   return (
     <div className="px-3 flex flex-col gap-3">
       <span className="text-xs font-medium">
@@ -8,10 +10,14 @@ export function UploadList() {
         <span className="text-zinc-400">(2)</span>
       </span>
 
-      <div className="flex flex-col gap-2">
-        <UploadItem />
-        <UploadItem />
-      </div>
+      {isUploadListEmpty ? (
+        <span className="text-xs text-zinc-400">No uploads added</span>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <UploadItem />
+          <UploadItem />
+        </div>
+      )}
     </div>
   );
 }
