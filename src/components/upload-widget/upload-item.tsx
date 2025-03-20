@@ -15,7 +15,11 @@ export function UploadItem({ upload, uploadId }: UploadItemProps) {
   const cancelUpload = useUploads((state) => state.cancelUpload);
 
   const progress = Math.min(
-    Math.round((upload.uploadSizeInBytes * 100) / upload.originalSizeInBytes),
+    upload.compressedSizeInBytes
+      ? Math.round(
+          (upload.uploadSizeInBytes * 100) / upload.compressedSizeInBytes
+        )
+      : 0,
     100
   );
 
@@ -66,12 +70,18 @@ export function UploadItem({ upload, uploadId }: UploadItemProps) {
       </Progress.Root>
 
       <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
-        <Button disabled={upload.status !== "success"} size="icon-sm">
+        <Button disabled={!upload.remoteUrl} size="icon-sm">
           <Download className="size-4" strokeWidth={1.5} />
           <span className="sr-only">Download compressed image</span>
         </Button>
 
-        <Button disabled={upload.status !== "success"} size="icon-sm">
+        <Button
+          disabled={!upload.remoteUrl}
+          size="icon-sm"
+          onClick={() =>
+            upload.remoteUrl && navigator.clipboard.writeText(upload.remoteUrl)
+          }
+        >
           <Link2 className="size-4" strokeWidth={1.5} />
           <span className="sr-only">Copy remote URL</span>
         </Button>

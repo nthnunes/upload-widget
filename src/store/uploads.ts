@@ -4,6 +4,7 @@ import { immer } from "zustand/middleware/immer";
 import { uploadFileToStorage } from "../http/upload-file-to-storage";
 import { CanceledError } from "axios";
 import { useShallow } from "zustand/shallow";
+import { compressImage } from "../utils/compress-image";
 
 export type Upload = {
   name: string;
@@ -11,7 +12,9 @@ export type Upload = {
   abortController: AbortController;
   status: "progress" | "success" | "error" | "canceled";
   originalSizeInBytes: number;
+  compressedSizeInBytes?: number;
   uploadSizeInBytes: number;
+  remoteUrl?: string;
 };
 
 type UploadState = {
@@ -47,9 +50,20 @@ export const useUploads = create<UploadState, [["zustand/immer", never]]>(
       }
 
       try {
-        await uploadFileToStorage(
+        const compressedFile = await compressImage({
+          file: upload.file,
+          maxWidth: 1000,
+          maxHeight: 1000,
+          quality: 0.8,
+        });
+
+        updateUpload(uploadId, {
+          compressedSizeInBytes: compressedFile.size,
+        });
+
+        const { url } = await uploadFileToStorage(
           {
-            file: upload.file,
+            file: compressedFile,
             onProgress(sizeInBytes) {
               updateUpload(uploadId, {
                 uploadSizeInBytes: sizeInBytes,
@@ -61,6 +75,7 @@ export const useUploads = create<UploadState, [["zustand/immer", never]]>(
 
         updateUpload(uploadId, {
           status: "success",
+          remoteUrl: url,
         });
       } catch (error) {
         if (error instanceof CanceledError) {
@@ -130,8 +145,12 @@ export const usePendingUploads = () => {
 
       const { total, uploaded } = Array.from(store.uploads.values()).reduce(
         (acc, upload) => {
-          acc.total += upload.originalSizeInBytes;
-          acc.uploaded += upload.uploadSizeInBytes;
+          if (upload.compressedSizeInBytes) {
+            acc.uploaded += upload.uploadSizeInBytes;
+          }
+
+          acc.total +=
+            upload.compressedSizeInBytes || upload.originalSizeInBytes;
 
           return acc;
         },
