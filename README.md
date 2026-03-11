@@ -1,8 +1,8 @@
 # Upload Widget
 
-![Upload Widget](preview/thumb.png)
-
 Um componente moderno e elegante para upload de arquivos, projetado para oferecer uma experiência de usuário fluida e responsiva.
+
+![Upload Widget](preview/thumb.png)
 
 ## 📋 Visão Geral
 
